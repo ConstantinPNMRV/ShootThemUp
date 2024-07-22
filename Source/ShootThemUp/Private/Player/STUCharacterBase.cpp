@@ -4,10 +4,14 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 #include "Components/InputComponent.h"
+#include "Components/STUHealthComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Engine/DamageEvents.h"
 
 ASTUCharacterBase::ASTUCharacterBase()
 {
@@ -22,6 +26,11 @@ ASTUCharacterBase::ASTUCharacterBase()
 
 	CharacterMovementComponent = GetCharacterMovement();
 	MaxSpeed = CharacterMovementComponent->MaxWalkSpeed;
+
+	HealthComponent = CreateDefaultSubobject<USTUHealthComponent>("HealthComponent");
+
+	HealthTextComponent = CreateDefaultSubobject<UTextRenderComponent>("HealthTextComponent");
+	HealthTextComponent->SetupAttachment(GetRootComponent());
 }
 
 void ASTUCharacterBase::BeginPlay()
@@ -35,6 +44,15 @@ void ASTUCharacterBase::BeginPlay()
 			Subsystem->AddMappingContext(InputMapping, 0);
 		}
 	}
+
+	check(HealthComponent);
+	check(HealthTextComponent);
+
+	OnHealthChanged(HealthComponent->GetHealth());
+	HealthComponent->OnDeath.AddUObject(this, &ASTUCharacterBase::OnDeath);
+	HealthComponent->OnHealthChanged.AddUObject(this, &ASTUCharacterBase::OnHealthChanged);
+
+	LandedDelegate.AddDynamic(this, &ASTUCharacterBase::OnGroundLanded);
 }
 
 void ASTUCharacterBase::Tick(float DeltaTime)
@@ -102,4 +120,37 @@ void ASTUCharacterBase::Sprint(const FInputActionValue& Value)
 	{
 		CharacterMovementComponent->MaxWalkSpeed = MaxSpeed;
 	}
+}
+
+void ASTUCharacterBase::OnDeath()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Red, FString::Printf(TEXT("Is Dead")));
+
+	PlayAnimMontage(DeathAnimMontage);
+	GetCharacterMovement()->DisableMovement();
+	SetLifeSpan(LifeSpanOfDeath);
+
+	if (Controller)
+	{
+		Controller->ChangeState(NAME_Spectating);
+	}
+
+}
+
+void ASTUCharacterBase::OnHealthChanged(float Health)
+{
+	HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
+}
+
+void ASTUCharacterBase::OnGroundLanded(const FHitResult& Hit)
+{
+	const float FallVelocityZ = -GetVelocity().Z;
+
+	if (FallVelocityZ < LandedDamageVelocity.X)
+	{
+		return;
+	}
+
+	const float FinalDamage = FMath::GetMappedRangeValueClamped(LandedDamageVelocity, LandedDamage, FallVelocityZ);
+	TakeDamage(FinalDamage, FDamageEvent{}, nullptr, nullptr);
 }

@@ -12,6 +12,9 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class UCharacterMovementComponent;
+class USTUHealthComponent;
+class UTextRenderComponent;
+class UDamageType;
 
 UCLASS()
 class SHOOTTHEMUP_API ASTUCharacterBase : public ACharacter
@@ -19,11 +22,29 @@ class SHOOTTHEMUP_API ASTUCharacterBase : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Compomemts")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	USTUHealthComponent* HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	UTextRenderComponent* HealthTextComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USpringArmComponent* SpringArmComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Compomemts")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float LifeSpanOfDeath = 5;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	FVector2D LandedDamageVelocity = FVector2D(500, 2000);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	FVector2D LandedDamage = FVector2D(10, 100);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animations")
+	UAnimMontage* DeathAnimMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input Settings")
 	UInputMappingContext* InputMapping;
@@ -60,12 +81,21 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UFUNCTION()
+	UFUNCTION(Category = "Movement")
 	void Move(const FInputActionValue& Value);
 
-	UFUNCTION()
+	UFUNCTION(Category = "Movement")
 	void Look(const FInputActionValue& Value);
 
-	UFUNCTION()
+	UFUNCTION(Category = "Movement")
 	void Sprint(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnDeath();
+
+	UFUNCTION()
+	void OnHealthChanged(float Health);
+
+	UFUNCTION()
+	void OnGroundLanded(const FHitResult& Hit);
 };
