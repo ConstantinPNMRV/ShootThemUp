@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "STUCharacterBase.generated.h"
+#include "STUBaseCharacter.generated.h"
 
 class UInputComponent;
 class USpringArmComponent;
@@ -17,7 +17,7 @@ class UTextRenderComponent;
 class UDamageType;
 
 UCLASS()
-class SHOOTTHEMUP_API ASTUCharacterBase : public ACharacter
+class SHOOTTHEMUP_API ASTUBaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ private:
 	UCharacterMovementComponent* CharacterMovementComponent;
 
 public:
-	ASTUCharacterBase();
+	ASTUBaseCharacter();
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

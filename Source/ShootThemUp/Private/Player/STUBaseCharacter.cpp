@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Player/STUCharacterBase.h"
+#include "Player/STUBaseCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -13,7 +13,7 @@
 #include "EnhancedInputComponent.h"
 #include "Engine/DamageEvents.h"
 
-ASTUCharacterBase::ASTUCharacterBase()
+ASTUBaseCharacter::ASTUBaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -33,7 +33,7 @@ ASTUCharacterBase::ASTUCharacterBase()
 	HealthTextComponent->SetupAttachment(GetRootComponent());
 }
 
-void ASTUCharacterBase::BeginPlay()
+void ASTUBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -49,33 +49,33 @@ void ASTUCharacterBase::BeginPlay()
 	check(HealthTextComponent);
 
 	OnHealthChanged(HealthComponent->GetHealth());
-	HealthComponent->OnDeath.AddUObject(this, &ASTUCharacterBase::OnDeath);
-	HealthComponent->OnHealthChanged.AddUObject(this, &ASTUCharacterBase::OnHealthChanged);
+	HealthComponent->OnDeath.AddUObject(this, &ASTUBaseCharacter::OnDeath);
+	HealthComponent->OnHealthChanged.AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
 
-	LandedDelegate.AddDynamic(this, &ASTUCharacterBase::OnGroundLanded);
+	LandedDelegate.AddDynamic(this, &ASTUBaseCharacter::OnGroundLanded);
 }
 
-void ASTUCharacterBase::Tick(float DeltaTime)
+void ASTUBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-void ASTUCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ASTUBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		Input->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASTUCharacterBase::Move);
-		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASTUCharacterBase::Look);
+		Input->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASTUBaseCharacter::Move);
+		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASTUBaseCharacter::Look);
 		Input->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		Input->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ASTUCharacterBase::Sprint);
-		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &ASTUCharacterBase::Sprint);
+		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ASTUBaseCharacter::Sprint);
+		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &ASTUBaseCharacter::Sprint);
 	}
 }
 
-float ASTUCharacterBase::GetMovementDirection() const
+float ASTUBaseCharacter::GetMovementDirection() const
 {
 	if (GetVelocity().IsZero())
 	{
@@ -89,7 +89,7 @@ float ASTUCharacterBase::GetMovementDirection() const
 	return CrossProduct.IsZero() ? Degrees : Degrees * FMath::Sign(CrossProduct.Z);
 }
 
-void ASTUCharacterBase::Move(const FInputActionValue& Value)
+void ASTUBaseCharacter::Move(const FInputActionValue& Value)
 {
 	const FVector2D AxisValue = Value.Get<FVector2D>();
 
@@ -102,7 +102,7 @@ void ASTUCharacterBase::Move(const FInputActionValue& Value)
 	AddMovementInput(GetActorRightVector(), AxisValue.X);
 }
 
-void ASTUCharacterBase::Look(const FInputActionValue& Value)
+void ASTUBaseCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D AxisValue = Value.Get<FVector2D>();
 
@@ -110,7 +110,7 @@ void ASTUCharacterBase::Look(const FInputActionValue& Value)
 	AddControllerYawInput(AxisValue.X);
 }
 
-void ASTUCharacterBase::Sprint(const FInputActionValue& Value)
+void ASTUBaseCharacter::Sprint(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>() == true)
 	{
@@ -122,7 +122,7 @@ void ASTUCharacterBase::Sprint(const FInputActionValue& Value)
 	}
 }
 
-void ASTUCharacterBase::OnDeath()
+void ASTUBaseCharacter::OnDeath()
 {
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Red, FString::Printf(TEXT("Is Dead")));
 
@@ -137,12 +137,12 @@ void ASTUCharacterBase::OnDeath()
 
 }
 
-void ASTUCharacterBase::OnHealthChanged(float Health)
+void ASTUBaseCharacter::OnHealthChanged(float Health)
 {
 	HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
 }
 
-void ASTUCharacterBase::OnGroundLanded(const FHitResult& Hit)
+void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
 {
 	const float FallVelocityZ = -GetVelocity().Z;
 
