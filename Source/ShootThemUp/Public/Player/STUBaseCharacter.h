@@ -15,6 +15,7 @@ class UCharacterMovementComponent;
 class USTUHealthComponent;
 class UTextRenderComponent;
 class UDamageType;
+class USTUWeaponComponent;
 
 UCLASS()
 class SHOOTTHEMUP_API ASTUBaseCharacter : public ACharacter
@@ -34,6 +35,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UCameraComponent* CameraComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	USTUWeaponComponent* WeaponComponent;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float LifeSpanOfDeath = 5;
 
@@ -47,7 +51,10 @@ protected:
 	UAnimMontage* DeathAnimMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input Settings")
-	UInputMappingContext* InputMapping;
+	UInputMappingContext* InputMappingMoving;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input Settings")
+	UInputMappingContext* InputMappingWeapons;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input Settings")
 	UInputAction* MoveAction;
@@ -60,6 +67,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input Settings")
 	UInputAction* SprintAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input Settings")
+	UInputAction* ShotAction;
 
 private:
 	UPROPERTY()

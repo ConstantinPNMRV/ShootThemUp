@@ -6,21 +6,37 @@
 #include "GameFramework/Actor.h"
 #include "STUBaseWeapon.generated.h"
 
+class USkeletalMeshComponent;
+
 UCLASS()
 class SHOOTTHEMUP_API ASTUBaseWeapon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	USkeletalMeshComponent* WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FName MuzzleSocketName = "MuzzleFlashSocket";
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float DamageAmount = 10;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float TraceMaxDistance = 1500;
+
+public:
 	ASTUBaseWeapon();
 
+	virtual void Fire();
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void MakeShot();
 
+private:
+	void MakeDamage(const FHitResult HitResult);
+	APlayerController* GetPlayerController();
 };

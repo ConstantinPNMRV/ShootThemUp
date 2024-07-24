@@ -6,8 +6,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "Components/InputComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/STUHealthComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Components/STUWeaponComponent.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
@@ -20,6 +22,7 @@ ASTUBaseCharacter::ASTUBaseCharacter()
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	SpringArmComponent->SetupAttachment(GetRootComponent());
 	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->SocketOffset = FVector(0, 100, 80);
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComponent->SetupAttachment(SpringArmComponent);
@@ -31,6 +34,9 @@ ASTUBaseCharacter::ASTUBaseCharacter()
 
 	HealthTextComponent = CreateDefaultSubobject<UTextRenderComponent>("HealthTextComponent");
 	HealthTextComponent->SetupAttachment(GetRootComponent());
+	HealthTextComponent->SetOwnerNoSee(true);
+
+	WeaponComponent = CreateDefaultSubobject<USTUWeaponComponent>("WeaponComponent");
 }
 
 void ASTUBaseCharacter::BeginPlay()
@@ -41,7 +47,8 @@ void ASTUBaseCharacter::BeginPlay()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(InputMapping, 0);
+			Subsystem->AddMappingContext(InputMappingMoving, 0);
+			Subsystem->AddMappingContext(InputMappingWeapons, 0);
 		}
 	}
 
@@ -63,6 +70,8 @@ void ASTUBaseCharacter::Tick(float DeltaTime)
 void ASTUBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	check(PlayerInputComponent);
+	check(WeaponComponent);
 
 	if (UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -72,6 +81,7 @@ void ASTUBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		Input->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ASTUBaseCharacter::Sprint);
 		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &ASTUBaseCharacter::Sprint);
+		Input->BindAction(ShotAction, ETriggerEvent::Triggered, WeaponComponent, &USTUWeaponComponent::Fire);
 	}
 }
 
@@ -135,6 +145,7 @@ void ASTUBaseCharacter::OnDeath()
 		Controller->ChangeState(NAME_Spectating);
 	}
 
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 }
 
 void ASTUBaseCharacter::OnHealthChanged(float Health)
